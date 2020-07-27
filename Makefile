@@ -170,7 +170,7 @@ $(SELF_EXECUTABLE): $(SELF_OBJECTS)
 		 -T$(SELF_LINKER_SCRIPT) \
 		 -Wl,-Map,$(BUILD_PATH)/update-$(NAME).map -o $(BUILD_PATH)/update-$(NAME).elf $(SELF_OBJECTS)
 	arm-none-eabi-objcopy -O binary $(BUILD_PATH)/update-$(NAME).elf $(BUILD_PATH)/update-$(NAME).bin
-	python2 lib/uf2/utils/uf2conv.py -b $(BOOTLOADER_SIZE) -c -o $@ $(BUILD_PATH)/update-$(NAME).bin
+	python3 lib/uf2/utils/uf2conv.py -b $(BOOTLOADER_SIZE) -c -o $@ $(BUILD_PATH)/update-$(NAME).bin
 
 $(BUILD_PATH)/%.o: src/%.c $(wildcard inc/*.h boards/*/*.h) $(BUILD_PATH)/uf2_version.h
 	echo "$<"
@@ -180,7 +180,7 @@ $(BUILD_PATH)/%.o: $(BUILD_PATH)/%.c
 	$(CC) $(CFLAGS) $(BLD_EXTA_FLAGS) $(INCLUDES) $< -o $@
 
 $(BUILD_PATH)/selfdata.c: $(EXECUTABLE) scripts/gendata.py src/sketch.cpp
-	python2 scripts/gendata.py $(BOOTLOADER_SIZE) $(EXECUTABLE)
+	python3 scripts/gendata.py $(BOOTLOADER_SIZE) $(EXECUTABLE)
 
 clean:
 	rm -rf build
@@ -207,8 +207,11 @@ drop-board: all
 	mkdir -p build/drop/$(BOARD)
 	cp $(SELF_EXECUTABLE) build/drop/$(BOARD)/
 	cp $(EXECUTABLE) build/drop/$(BOARD)/
+# .ino works only for SAMD21 right now; suppress for SAMD51
+ifeq ($(CHIP_FAMILY),samd21)
 	cp $(SELF_EXECUTABLE_INO) build/drop/$(BOARD)/
 	cp boards/$(BOARD)/board_config.h build/drop/$(BOARD)/
+endif
 
 drop-pkg:
 	mv build/drop build/uf2-samd21-$(UF2_VERSION_BASE)
